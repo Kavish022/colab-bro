@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* This is the magic line for Tailwind v4 to support the 'dark' class */
+@config "../tailwind.config.js"; 
+
+:root {
+  --background: #f9fafb;
+  --foreground: #111827;
+}
+
+.dark {
+  --background: #111827;
+  --foreground: #f9fafb;
+}
+
+body {
+  @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+  margin: 0;
+  font-family: sans-serif;
+}
