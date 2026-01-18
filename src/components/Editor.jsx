@@ -1,53 +1,99 @@
-// import React from 'react';
-// import { Users } from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
+import { useEffect } from 'react';
+import { Bold, Italic, List, Heading1, Quote } from 'lucide-react';
 
-// export default function Editor({ 
-//   document, 
-//   handleDocumentChange, 
-//   activeUsers, 
-//   editingUser, 
-//   cursorPositions, 
-//   textareaRef 
-// }) {
-//   return (
-//     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
-//       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between transition-colors">
-//         <div className="flex items-center space-x-4">
-//           <Users className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-//           <span className="text-sm text-gray-600 dark:text-gray-300">
-//             {activeUsers.filter(u => u.status === 'editing').length} editing
-//           </span>
-//         </div>
-//         {editingUser && (
-//           <div className="text-sm text-gray-600 dark:text-gray-300 animate-pulse">
-//             {editingUser} is typing...
-//           </div>
-//         )}
-//       </div>
+export default function Editor({ content, onDocChange }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({ 
+        placeholder: 'Start typing your strategy here...' 
+      }),
+    ],
+    content: content,
+    onUpdate: ({ editor }) => {
+      onDocChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        // The 'prose' class here uses the Tailwind config you just updated
+        class: 'prose dark:prose-invert focus:outline-none max-w-none min-h-[500px] p-8 text-gray-800 dark:text-gray-200 leading-relaxed',
+      },
+    },
+  });
 
-//       <div className="flex-1 overflow-auto p-6 relative">
-//         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 relative transition-colors h-full">
-//           <textarea
-            // ref={textareaRef}
-//             value={document.content}
-//             onChange={handleDocumentChange}
-//             className="w-full h-full border-none focus:outline-none resize-none font-mono text-sm text-gray-800 dark:text-gray-200 bg-transparent leading-relaxed"
-//             placeholder="Start typing..."
-//           />
-          
-//           {Object.entries(cursorPositions).map(([userId, position]) => {
-//             const user = activeUsers.find(u => u.id === parseInt(userId));
-//             if (!user || user.status !== 'editing') return null;
-//             return (
-//               <div key={userId} className="absolute w-0.5 h-5 animate-pulse pointer-events-none"
-//                 style={{ backgroundColor: user.color, left: `${20 + (position % 50)}%`, top: `${100 + Math.floor(position / 50) * 20}px` }}>
-//                 <div className="absolute -top-6 left-0 px-2 py-1 rounded text-xs text-white whitespace-nowrap"
-//                   style={{ backgroundColor: user.color }}>{user.name}</div>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+  // Sync with Supabase (External Changes)
+  useEffect(() => {
+    if (editor && content && content !== editor.getHTML()) {
+      editor.commands.setContent(content, false);
+    }
+  }, [content, editor]);
+
+  if (!editor) {
+    return <div className="p-8 text-gray-400 animate-pulse">Loading editor...</div>;
+  }
+
+  return (
+    <div className="w-full bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col">
+      
+      {/* 1. FIXED TOOLBAR (Replaces the crashing BubbleMenu) */}
+      <div className="flex gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 sticky top-0 z-10">
+        <ToolbarButton 
+          onClick={() => editor.chain().focus().toggleBold().run()} 
+          isActive={editor.isActive('bold')}
+        >
+          <Bold size={18} />
+        </ToolbarButton>
+        
+        <ToolbarButton 
+          onClick={() => editor.chain().focus().toggleItalic().run()} 
+          isActive={editor.isActive('italic')}
+        >
+          <Italic size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton 
+          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} 
+          isActive={editor.isActive('heading', { level: 1 })}
+        >
+          <Heading1 size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton 
+          onClick={() => editor.chain().focus().toggleBulletList().run()} 
+          isActive={editor.isActive('bulletList')}
+        >
+          <List size={18} />
+        </ToolbarButton>
+
+        <ToolbarButton 
+          onClick={() => editor.chain().focus().toggleBlockquote().run()} 
+          isActive={editor.isActive('blockquote')}
+        >
+          <Quote size={18} />
+        </ToolbarButton>
+      </div>
+
+      {/* 2. THE EDITOR AREA */}
+      <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-800 cursor-text">
+        <EditorContent editor={editor} />
+      </div>
+    </div>
+  );
+}
+
+// Small helper component for buttons
+function ToolbarButton({ onClick, isActive, children }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors ${
+        isActive ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}

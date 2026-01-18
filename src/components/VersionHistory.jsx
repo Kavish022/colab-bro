@@ -1,17 +1,17 @@
-import React from 'react';
+import { History as HistoryIcon } from 'lucide-react';
 
-export default function VersionHistory({ versionHistory }) {
+export default function History({ history }) {
   return (
-    <div className="h-64 overflow-auto">
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
-        <span className="font-semibold text-gray-900">Version History</span>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex items-center gap-2">
+        <HistoryIcon size={16} className="text-purple-600" />
+        <span className="font-bold text-sm dark:text-white">History</span>
       </div>
-      <div className="p-4 space-y-3">
-        {versionHistory.map(version => (
-          <div key={version.id} className="text-sm">
-            <div className="font-medium text-gray-900">{version.user}</div>
-            <div className="text-gray-600">{version.action}</div>
-            <div className="text-gray-400 text-xs mt-1">{version.time}</div>
+      <div className="p-4 overflow-y-auto space-y-4">
+        {history.map(item => (
+          <div key={item.id} className="text-xs border-l-2 border-blue-500 pl-2">
+            <div className="font-bold dark:text-gray-200">{item.action}</div>
+            <div className="text-gray-400">{item.user} • {item.time}</div>
           </div>
         ))}
       </div>
